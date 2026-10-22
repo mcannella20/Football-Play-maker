@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Sideline Playmaker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Graduate&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: the field is the hero; a coach's clipboard panel sits beside it on desktop and below it on phones */
+:root{
+  --bg:#eceee8; --panel:#ffffff; --soft:#f4f5f1; --ink:#17201a; --muted:#5b685e; --line:#d4d9cf;
+  --accent:#e2621b; --accent-ink:#ffffff; --danger:#b3261e;
+  --display:'Graduate','Rockwell',Georgia,serif;
+  --body:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --cond:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1410; --panel:#172019; --soft:#111913; --ink:#e4eae2; --muted:#98a69b; --line:#2a352d;
+  --accent:#f27a35; --accent-ink:#141414; --danger:#ef7a70; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1410; --panel:#172019; --soft:#111913; --ink:#e4eae2; --muted:#98a69b; --line:#2a352d;
+  --accent:#f27a35; --accent-ink:#141414; --danger:#ef7a70; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.4}
+.app{max-width:1180px;margin:0 auto;padding-block:12px 28px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.app{grid-template-columns:minmax(0,1fr) 370px;align-items:start}}
+
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand h1{font-family:var(--display);font-weight:400;font-size:22px;margin:0;letter-spacing:.02em;text-wrap:balance}
+.brand small{font-family:var(--cond);font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-size:12px}
+
+.fieldcol{display:flex;flex-direction:column;gap:10px;min-width:0}
+.topbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.topbar .name{flex:1 1 180px;min-width:0}
+.fieldbox{display:flex;justify-content:center}
+#field{display:block;width:100%;height:auto;aspect-ratio:533/640;border-radius:6px;touch-action:none;user-select:none;-webkit-user-select:none;
+  box-shadow:0 1px 0 rgba(0,0,0,.08),0 8px 24px -12px rgba(0,0,0,.35)}
+@media (min-width:900px){#field{width:min(100%, calc((100dvh - 150px) * 533 / 640))}}
+.hint{font-size:13px;color:var(--muted);margin:0;min-height:1.4em}
+.count{font-family:var(--cond);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--muted)}
+.count b{color:var(--ink)} .count .warn{color:var(--danger)}
+
+input[type=text],select,textarea{font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%}
+textarea{min-height:70px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+button{font:inherit;cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+  border-radius:6px;padding:8px 12px;font-family:var(--cond);font-weight:700;font-size:15px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--danger)}
+.btn.small{padding:6px 9px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:default}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:transparent;color:var(--muted);padding:7px 11px;font-family:var(--cond);font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:0}
+.gloss{display:flex;flex-direction:column;gap:18px}
+.gloss h4{margin:0 0 6px;font-family:var(--display);font-weight:400;font-size:17px;letter-spacing:.02em}
+.gloss dl{margin:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.gloss .g{padding:10px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.gloss dt{font-weight:700;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.gloss dt .ab{font-family:var(--cond);font-size:13px;letter-spacing:.06em;color:var(--accent);text-transform:uppercase}
+.gloss dd{margin:0;color:var(--ink);max-width:62ch}
+.gloss .try{align-self:flex-start;margin-top:2px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:transparent;padding:12px 6px;font-family:var(--cond);font-weight:700;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:3px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.pane{padding:14px;display:flex;flex-direction:column;gap:16px}
+.sec{display:flex;flex-direction:column;gap:8px}
+.sec h3{margin:0;font-family:var(--cond);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-width:44px;border-radius:999px;padding:6px 10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font-family:var(--cond);font-weight:700;font-size:14px;letter-spacing:.04em}
+.chip:hover{border-color:var(--muted)}
+.chip.o{border-color:var(--oc)}
+.chip.d{border-style:dashed;border-color:var(--dc)}
+.card{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--soft)}
+.selhead{display:flex;gap:10px;align-items:center}
+.tok{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:var(--cond);font-weight:700;font-size:16px;flex:none}
+.empty{color:var(--muted);font-size:14px;margin:0}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.swatches{display:flex;flex-wrap:wrap;gap:6px}
+.sw{width:28px;height:28px;border-radius:50%;border:2px solid var(--panel);box-shadow:0 0 0 1px var(--line)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--accent)}
+.list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.item{display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--panel)}
+.item+.item{border-top:1px solid var(--line)}
+.item .t{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .sub{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);
+  padding:9px 16px;border-radius:999px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+
+
+<div class="app">
+  <div class="fieldcol">
+    <div class="brand"><h1>Sideline Playmaker</h1><small>Draw it · Run it · Save it</small></div>
+    <div class="topbar">
+      <input type="text" id="playName" class="name" maxlength="40" aria-label="Play name" placeholder="Play name">
+      <button class="btn primary" id="playBtn" data-act="play">▶ Run play</button>
+      <button class="btn" data-act="reset">Reset</button>
+      <div class="seg" role="group" aria-label="Speed">
+        <button data-act="speed" data-v="0.5">½×</button><button data-act="speed" data-v="1">1×</button><button data-act="speed" data-v="2">2×</button>
+      </div>
+    </div>
+    <div class="fieldbox">
+      <svg id="field" viewBox="0 0 533 640" xmlns="http://www.w3.org/2000/svg" aria-label="Football field">
+        <defs>
+          <marker id="mk-o" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ffffff"/></marker>
+          <marker id="mk-d" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ffd6cf"/></marker>
+          <marker id="mk-s" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff9a4a"/></marker>
+        </defs>
+        <g id="static"></g><g id="dyn"></g>
+      </svg>
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <p class="hint" id="hint"></p>
+      <span class="count" id="count"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-act="tab" data-v="edit" aria-selected="true">Edit</button>
+      <button role="tab" data-act="tab" data-v="teams" aria-selected="false">Teams</button>
+      <button role="tab" data-act="tab" data-v="book" aria-selected="false">Playbook</button>
+      <button role="tab" data-act="tab" data-v="learn" aria-selected="false">Learn</button>
+    </div>
+
+    <div class="pane" id="pane-learn" hidden>
+      <input type="text" id="glossQ" placeholder="Search: play action, Y, blitz…" aria-label="Search football words">
+      <div class="chips" id="glossCats"></div>
+      <div id="glossList" class="gloss"></div>
+    </div>
+
+    <div class="pane" id="pane-edit">
+      <div class="sec">
+        <h3>Tool</h3>
+        <div class="row">
+          <div class="seg" role="group" aria-label="Tool">
+            <button data-act="mode" data-v="move">Move players</button><button data-act="mode" data-v="route">Draw routes</button>
+          </div>
+          <button class="btn small" data-act="undo" id="undoBtn">↶ Undo</button>
+        </div>
+      </div>
+      <div class="sec">
+        <h3>Selected player</h3>
+        <div id="selBox"></div>
+      </div>
+      <div class="sec">
+        <h3>The ball</h3>
+        <div class="card">
+          <label class="f">Who gets the ball
+            <select id="ballTo"></select>
+          </label>
+          <div class="row"><span style="font-size:13px;color:var(--muted)">QB lets it go</span>
+            <div class="seg" role="group" aria-label="Release timing">
+              <button data-act="rel" data-v="early">Quick</button><button data-act="rel" data-v="normal">Normal</button><button data-act="rel" data-v="late">Late</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sec">
+        <h3>Add offense</h3>
+        <div class="chips" id="addO"></div>
+        <h3>Add defense</h3>
+        <div class="chips" id="addD"></div>
+      </div>
+      <div class="sec">
+        <h3>Whole play</h3>
+        <div class="row">
+          <button class="btn small" data-act="clear-routes">Clear all routes</button>
+          <button class="btn small danger" data-act="clear-field" id="clearFieldBtn">Clear field</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-teams" hidden>
+      <div class="sec">
+        <h3>Offense (bottom)</h3>
+        <input type="text" id="teamO" maxlength="16" aria-label="Offense team name">
+        <div class="swatches" id="swO"></div>
+      </div>
+      <div class="sec">
+        <h3>Defense (end zone)</h3>
+        <input type="text" id="teamD" maxlength="16" aria-label="Defense team name">
+        <div class="swatches" id="swD"></div>
+      </div>
+      <div class="row"><button class="btn small" data-act="swap">⇅ Swap sides</button></div>
+    </div>
+
+    <div class="pane" id="pane-book" hidden>
+      <div class="sec">
+        <h3>Save this play</h3>
+        <div class="row"><button class="btn primary" data-act="save">Save “<span id="saveName"></span>”</button></div>
+        <p class="empty" style="font-size:13px">Saving with a name you already used updates that play.</p>
+      </div>
+      <div class="sec">
+        <h3>Our plays</h3>
+        <div id="savedList"></div>
+      </div>
+      <div class="sec">
+        <h3>Starter plays</h3>
+        <div class="list" id="preList"></div>
+      </div>
+      <div class="sec">
+        <h3>Share a play</h3>
+        <div class="row"><button class="btn small" data-act="copy-code">Copy play code</button></div>
+        <textarea id="codeBox" aria-label="Play code" placeholder="Paste a play code here, then tap Load code"></textarea>
+        <div class="row"><button class="btn small" data-act="import-code">Load code</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const W=533, LOS=400, SPD=85, BSPD=330;
+const REL={early:.35,normal:1.1,late:1.9};
+const SWATCH=['#1f4fa3','#b3261e','#0f6b3b','#5b2a86','#e0761a','#141414','#c9a227','#0e7c86','#7a1f2b','#6b7280'];
+const OFF_LABELS=['QB','RB','FB','WR','TE','C','G','T'];
+const DEF_LABELS=['DE','DT','LB','MLB','CB','S','FS','SS'];
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const uid=()=>'p'+Math.random().toString(36).slice(2,9);
+const P=(l,s,x,y,r=[],end='arrow')=>({id:uid(),l,s,x,y,r,end});
+
+/* ---------- starter plays ---------- */
+const OLX=[182,224,266,308,350], OLL=['T','G','C','G','T'];
+const ol=fn=>OLX.map((x,i)=>P(OLL[i],'O',x,420,fn?fn(x,i):[],'block'));
+const runBlock=x=>[[x,392]], passPro=x=>[[x,438]];
+function d43(moves=true){
+  const m=(r)=>moves?r:[];
+  return [P('DE','D',172,375,m([[172,404]]),'block'),P('DT','D',240,377,m([[240,402]]),'block'),
+    P('DT','D',292,377,m([[292,402]]),'block'),P('DE','D',360,375,m([[360,404]]),'block'),
+    P('OLB','D',180,318,m([[175,345]])),P('MLB','D',266,312,m([[266,340]])),P('OLB','D',352,318,m([[357,345]])),
+    P('CB','D',40,372,m([[45,318]])),P('CB','D',493,372,m([[488,318]])),
+    P('FS','D',196,222,m([[200,198]])),P('SS','D',338,232,m([[330,212]]))];
+}
+const PRE=[
+ {name:'Blank 11 on 11',desc:'Pro set vs 4-3, no routes',make(){return{players:[...ol(),P('QB','O',266,445),P('RB','O',266,515),P('WR','O',40,410),P('WR','O',120,425),P('TE','O',392,420),P('WR','O',493,410),...d43(false)],ball:{to:null,rel:'normal'}}}},
+ {name:'HB Dive',desc:'I-form run up the middle',make(){const rb=P('RB','O',266,525,[[255,470],[255,395],[262,290]]);
+   return{players:[...ol(runBlock),P('QB','O',266,445,[[248,462]]),P('FB','O',266,485,[[250,398]],'block'),rb,
+   P('TE','O',392,420,[[396,392]],'block'),P('WR','O',40,410,[[44,352]],'block'),P('WR','O',493,410,[[489,352]],'block'),...d43()],ball:{to:rb.id,rel:'early'}}}},
+ {name:'Toss Sweep',desc:'Pitch to the RB around the right edge',make(){const rb=P('RB','O',266,525,[[330,520],[440,455],[478,380],[478,240]]);
+   return{players:[...ol(x=>[[x+28,394]]),P('QB','O',266,445,[[296,456]]),P('FB','O',266,485,[[372,432],[418,392]],'block'),rb,
+   P('TE','O',392,420,[[422,392]],'block'),P('WR','O',40,410,[[62,352]],'block'),P('WR','O',493,410,[[470,350]],'block'),...d43()],ball:{to:rb.id,rel:'early'}}}},
+ {name:'Slant-Flat',desc:'Quick pass, shotgun',make(){const x=P('WR','O',40,410,[[40,372],[135,300],[205,255]]);
+   return{players:[...ol(passPro),P('QB','O',266,480,[[266,505]]),P('RB','O',222,480,[[200,452]],'block'),x,
+   P('WR','O',110,425,[[96,402],[22,382]]),P('TE','O',392,420,[[392,345],[300,280]]),P('WR','O',493,410,[[493,372],[400,300]]),...d43()],ball:{to:x.id,rel:'normal'}}}},
+ {name:'Four Verticals',desc:'Everybody goes deep',make(){const s=P('WR','O',120,425,[[140,330],[140,120]]);
+   return{players:[...ol(passPro),P('QB','O',266,480,[[266,505]]),P('RB','O',312,480,[[340,448]],'block'),
+   P('WR','O',40,410,[[40,120]]),s,P('WR','O',413,425,[[393,330],[393,120]]),P('WR','O',493,410,[[493,120]]),...d43()],ball:{to:s.id,rel:'late'}}}},
+ {name:'PA Bootleg',desc:'Fake the run, QB rolls left',make(){const te=P('TE','O',392,420,[[392,388],[210,365],[70,350]]);
+   return{players:[...ol(runBlock),P('QB','O',266,445,[[300,462],[200,488],[112,455]]),P('RB','O',266,525,[[318,470],[360,402]],'block'),
+   P('FB','O',266,485,[[330,415]],'block'),te,P('WR','O',40,410,[[40,150]]),P('WR','O',493,410,[[493,300],[352,180]]),...d43()],ball:{to:te.id,rel:'late'}}}},
+ {name:'RB Screen',desc:'Linemen release, RB catches behind them',make(){const rb=P('RB','O',312,480,[[335,470],[425,472],[445,405],[452,250]]);
+   return{players:[...ol((x,i)=>i<2?[[x,438]]:[[x,432],[x+90,405]]),P('QB','O',266,480,[[266,525]]),rb,
+   P('WR','O',40,410,[[40,150]]),P('WR','O',120,425,[[150,180]]),P('TE','O',392,420,[[420,300]]),P('WR','O',493,410,[[493,150]]),...d43()],ball:{to:rb.id,rel:'late'}}}},
+];
+
+/* ---------- state ---------- */
+let teams=store.get('spm.teams',{o:{name:'Home',color:'#1f4fa3'},d:{name:'Visitors',color:'#b3261e'}});
+let saved=store.get('spm.saved',[]);
+let play=store.get('spm.draft',null);
+if(!play||!Array.isArray(play.players)) play=fromPre(1);
+let sel=null, mode='move', speed=1, hist=[], anim=null, drag=null, tab='edit', pendingDel=null, clearArm=false;
+
+function fromPre(i){const p=PRE[i].make();return{name:PRE[i].name,players:p.players,ball:p.ball}}
+function fresh(p){ // deep copy with new ids
+  const c=JSON.parse(JSON.stringify(p)), map={};
+  c.players.forEach(pl=>{const n=uid();map[pl.id]=n;pl.id=n});
+  c.ball=c.ball||{to:null,rel:'normal'}; c.ball.to=map[c.ball.to]||null; return c;
+}
+const find=id=>play.players.find(p=>p.id===id);
+const getSel=()=>sel&&find(sel);
+function pushHist(){hist.push(JSON.stringify(play));if(hist.length>60)hist.shift()}
+function changed(){store.set('spm.draft',play);renderAll()}
+const clampPt=([x,y])=>[Math.round(Math.max(12,Math.min(W-12,x))),Math.round(Math.max(12,Math.min(628,y)))];
+
+/* ---------- field ---------- */
+const svg=$('#field');
+function txtOn(hex){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;return(0.299*r+0.587*g+0.114*b)>150?'#111':'#fff'}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function bannerText(name,y){
+  const t=(name||' ').toUpperCase(), fs=Math.min(46,470/(Math.max(t.length,1)*0.82));
+  return `<text x="266.5" y="${y}" text-anchor="middle" dominant-baseline="central" font-family="Graduate, Rockwell, Georgia, serif" font-size="${fs.toFixed(1)}" fill="${txtOn(teams.d.color)==='#fff'?'#fff':'#111'}" letter-spacing="2">${esc(t)}</text>`;
+}
+function renderStatic(){
+  let s='';
+  for(let k=0;k<10;k++) s+=`<rect x="0" y="${80+48*k}" width="${W}" height="48" fill="${k%2?'#2a7437':'#2f7f3c'}"/>`;
+  s+=`<rect x="0" y="0" width="${W}" height="80" fill="${teams.d.color}"/>`;
+  s+=`<rect x="0" y="560" width="${W}" height="80" fill="${teams.o.color}"/>`;
+  const dt=(teams.d.name||' ').toUpperCase(), ot=(teams.o.name||' ').toUpperCase();
+  const fs=t=>Math.min(46,470/(Math.max(t.length,1)*0.82)).toFixed(1);
+  s+=`<text x="266.5" y="42" text-anchor="middle" dominant-baseline="central" font-family="Graduate, Rockwell, Georgia, serif" font-size="${fs(dt)}" fill="${txtOn(teams.d.color)}" letter-spacing="2">${esc(dt)}</text>`;
+  s+=`<text x="266.5" y="602" text-anchor="middle" dominant-baseline="central" font-family="Graduate, Rockwell, Georgia, serif" font-size="${fs(ot)}" fill="${txtOn(teams.o.color)}" letter-spacing="2">${esc(ot)}</text>`;
+  // yard lines every 5 yds, hash ticks every yard
+  for(let y=80;y<=560;y+=10){
+    if((y-80)%50===0){s+=`<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#fff" stroke-width="${y===80?5:2}" opacity=".9"/>`}
+    else s+=`<g stroke="#fff" stroke-width="1.6" opacity=".8"><line x1="6" x2="16" y1="${y}" y2="${y}"/><line x1="${W-16}" x2="${W-6}" y1="${y}" y2="${y}"/><line x1="196" x2="206" y1="${y}" y2="${y}"/><line x1="327" x2="337" y1="${y}" y2="${y}"/></g>`;
+  }
+  [10,20,30,40].forEach(n=>{const y=80+n*10;
+    s+=`<text x="54" y="${y}" transform="rotate(-90 54 ${y})" text-anchor="middle" dominant-baseline="central" font-family="Graduate, Rockwell, Georgia, serif" font-size="26" fill="#fff" opacity=".8">${n}</text>`;
+    s+=`<text x="${W-54}" y="${y}" transform="rotate(90 ${W-54} ${y})" text-anchor="middle" dominant-baseline="central" font-family="Graduate, Rockwell, Georgia, serif" font-size="26" fill="#fff" opacity=".8">${n}</text>`;});
+  s+=`<line x1="0" x2="${W}" y1="${LOS-100}" y2="${LOS-100}" stroke="#ffd400" stroke-width="3" opacity=".9"/>`;
+  s+=`<line x1="0" x2="${W}" y1="${LOS}" y2="${LOS}" stroke="#58b4ff" stroke-width="3" opacity=".95"/>`;
+  s+=`<rect x="1.5" y="1.5" width="${W-3}" height="637" fill="none" stroke="#fff" stroke-width="3"/>`;
+  $('#static').innerHTML=s;
+}
+
+/* paths & animation math */
+function mkPath(p){const pts=[[p.x,p.y],...p.r],cum=[0];for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));return{pts,cum,tot:cum[cum.length-1]}}
+function at(path,t){const d=Math.min(Math.max(t,0)*SPD,path.tot);const{pts,cum}=path;
+  for(let i=1;i<pts.length;i++){if(d<=cum[i]){const k=(d-cum[i-1])/((cum[i]-cum[i-1])||1);return[pts[i-1][0]+(pts[i][0]-pts[i-1][0])*k,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*k]}}
+  return pts[pts.length-1];}
+function holderOf(){return play.players.find(p=>p.s==='O'&&p.l==='QB')||play.players.find(p=>p.s==='O'&&p.l==='C')||play.players.find(p=>p.s==='O')}
+
+function renderField(){
+  const pos={}; let ball=null;
+  if(anim){play.players.forEach(p=>pos[p.id]=at(anim.paths[p.id],anim.t)); ball=ballAt(anim.t)}
+  else{play.players.forEach(p=>pos[p.id]=[p.x,p.y]); const h=holderOf(); if(h) ball={x:h.x+13,y:h.y-15,s:1}}
+  let s='';
+  // routes
+  play.players.forEach(p=>{
+    if(!p.r.length)return;
+    const isSel=sel===p.id&&!anim, col=isSel?'#ff9a4a':p.s==='O'?'#ffffff':'#ffd6cf';
+    const pts=[[p.x,p.y],...p.r], str=pts.map(q=>q.join(',')).join(' ');
+    const mk=p.end==='arrow'?` marker-end="url(#${isSel?'mk-s':p.s==='O'?'mk-o':'mk-d'})"`:'';
+    s+=`<polyline points="${str}" fill="none" stroke="${col}" stroke-width="${isSel?5:4}" stroke-linecap="round" stroke-linejoin="round" ${p.s==='D'?'stroke-dasharray="10 8"':''} opacity="${anim?.35:.95}"${mk}/>`;
+    if(p.end==='block'){const a=pts[pts.length-2],b=pts[pts.length-1],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1,nx=-dy/L*12,ny=dx/L*12;
+      s+=`<line x1="${b[0]+nx}" y1="${b[1]+ny}" x2="${b[0]-nx}" y2="${b[1]-ny}" stroke="${col}" stroke-width="${isSel?5:4}" stroke-linecap="round" opacity="${anim?.35:.95}"/>`}
+    if(isSel&&mode==='route') p.r.forEach((q,i)=>{s+=`<g data-wp="${i}"><circle cx="${q[0]}" cy="${q[1]}" r="20" fill="transparent"/><circle cx="${q[0]}" cy="${q[1]}" r="8" fill="#fff" stroke="#ff9a4a" stroke-width="3"/></g>`});
+  });
+  // players: defense first so offense sits on top
+  [...play.players].sort((a,b)=>(a.s==='O')-(b.s==='O')).forEach(p=>{
+    const [x,y]=pos[p.id], off=p.s==='O', c=off?teams.o.color:teams.d.color;
+    const fill=off?c:'#ffffff', tc=off?txtOn(c):c, fs=p.l.length>=3?13:p.l.length===2?16:19;
+    s+=`<g data-pid="${p.id}" style="cursor:${mode==='move'?'grab':'pointer'}">`;
+    if(sel===p.id&&!anim) s+=`<circle cx="${x}" cy="${y}" r="25" fill="none" stroke="#ff9a4a" stroke-width="3.5"/>`;
+    s+=`<circle cx="${x}" cy="${y}" r="26" fill="transparent"/>`;
+    s+=`<circle cx="${x}" cy="${y}" r="19" fill="${fill}" stroke="${off?'#fff':c}" stroke-width="${off?2.5:3.5}"/>`;
+    s+=`<text x="${x}" y="${y+.5}" text-anchor="middle" dominant-baseline="central" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="700" font-size="${fs}" fill="${tc}" pointer-events="none">${esc(p.l)}</text></g>`;
+  });
+  if(ball){const sc=ball.s||1;
+    s+=`<g transform="translate(${ball.x} ${ball.y}) scale(${sc})" pointer-events="none"><ellipse rx="10" ry="6.5" fill="#7a3f17" stroke="#fff" stroke-width="1.5"/><line x1="-4" x2="4" y1="0" y2="0" stroke="#fff" stroke-width="1.4"/></g>`}
+  $('#dyn').innerHTML=s;
+}
+
+function ballAt(t){
+  const b=anim.ball; if(!b) return null;
+  const hp=at(anim.paths[b.h.id],t);
+  if(!b.tg||t<b.rel) return{x:hp[0]+13,y:hp[1]-15,s:1};
+  if(t<b.rel+b.fl){const k=(t-b.rel)/b.fl;return{x:b.from[0]+(b.land[0]-b.from[0])*k,y:b.from[1]+(b.land[1]-b.from[1])*k,s:1+0.7*Math.sin(Math.PI*k)}}
+  const tp=at(anim.paths[b.tg.id],t); return{x:tp[0]+13,y:tp[1]-15,s:1};
+}
+
+/* ---------- play / reset ---------- */
+function startPlay(){
+  sel=null; const paths={}; play.players.forEach(p=>paths[p.id]=mkPath(p));
+  let end=0; Object.values(paths).forEach(pa=>end=Math.max(end,pa.tot/SPD));
+  const h=holderOf(), tg=find(play.ball.to); let ball=null;
+  if(h){ball={h}; if(tg&&tg.id!==h.id){
+      const rel=REL[play.ball.rel]||1.1, from=(p=>[p[0]+13,p[1]-15])(at(paths[h.id],rel)); let fl=.3, land;
+      for(let k=0;k<3;k++){const q=at(paths[tg.id],rel+fl);land=[q[0]+13,q[1]-15];fl=Math.max(.18,Math.hypot(land[0]-from[0],land[1]-from[1])/BSPD)}
+      Object.assign(ball,{tg,rel,fl,from,land}); end=Math.max(end,rel+fl+.3);}}
+  anim={t:0,paths,ball,end:end+.6,last:performance.now(),done:false};
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){anim.t=anim.end;anim.done=true;renderAll();return}
+  renderAll(); requestAnimationFrame(tick);
+}
+function tick(now){
+  if(!anim||anim.done)return;
+  const dt=Math.min(.05,(now-anim.last)/1000); anim.last=now; anim.t+=dt*speed;
+  if(anim.t>=anim.end){anim.t=anim.end;anim.done=true;renderAll();return}
+  renderField(); requestAnimationFrame(tick);
+}
+function resetAnim(){anim=null}
+
+/* ---------- pointer editing ---------- */
+function svgPt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());return[q.x,q.y]}
+svg.addEventListener('pointerdown',e=>{
+  if(anim){resetAnim();}
+  const pt=svgPt(e), wp=e.target.closest('[data-wp]'), pg=e.target.closest('[data-pid]');
+  if(mode==='route'&&wp&&getSel()){drag={type:'wp',i:+wp.dataset.wp,moved:false}}
+  else if(pg){sel=pg.dataset.pid; if(mode==='move')drag={type:'p',last:pt,moved:false};}
+  else if(mode==='route'&&getSel()){pushHist();getSel().r.push(clampPt(pt));changed();try{svg.setPointerCapture(e.pointerId)}catch(_){};return}
+  else if(mode==='move'){sel=null}
+  try{svg.setPointerCapture(e.pointerId)}catch(_){}
+  renderAll();
+});
+svg.addEventListener('pointermove',e=>{
+  if(!drag)return; const p=getSel(); if(!p)return; const pt=svgPt(e);
+  if(!drag.moved){pushHist();drag.moved=true}
+  if(drag.type==='p'){
+    const n=clampPt(pt), dx=n[0]-p.x, dy=n[1]-p.y; p.x=n[0];p.y=n[1]; p.r=p.r.map(q=>clampPt([q[0]+dx,q[1]+dy]));
+  }else{p.r[drag.i]=clampPt(pt)}
+  renderField();
+});
+const endDrag=()=>{if(drag&&drag.moved)changed();drag=null};
+svg.addEventListener('pointerup',endDrag); svg.addEventListener('pointercancel',endDrag);
+
+/* ---------- panel ---------- */
+function renderPanel(){
+  document.documentElement.style.setProperty('--oc',teams.o.color);
+  document.documentElement.style.setProperty('--dc',teams.d.color);
+  const pn=$('#playName'); if(document.activeElement!==pn) pn.value=play.name||'';
+  $('#saveName').textContent=play.name||'Untitled play';
+  const pb=$('#playBtn'); pb.textContent=anim&&!anim.done?'Running…':anim&&anim.done?'↻ Run again':'▶ Run play'; pb.disabled=!!(anim&&!anim.done);
+  document.querySelectorAll('[data-act="speed"]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===speed));
+  document.querySelectorAll('[data-act="mode"]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===mode));
+  document.querySelectorAll('[data-act="rel"]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===(play.ball.rel||'normal')));
+  document.querySelectorAll('[data-act="tab"]').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===tab));
+  ['edit','teams','book','learn'].forEach(t=>$('#pane-'+t).hidden=t!==tab);
+  if(tab==='learn') renderGloss();
+  $('#undoBtn').disabled=!hist.length;
+  $('#clearFieldBtn').textContent=clearArm?'Tap again to clear':'Clear field';
+
+  const p=getSel();
+  $('#hint').textContent = anim?'Tap Reset or touch the field to go back to the formation.'
+    : mode==='move'?'Drag players to set the formation. Tap one to edit it.'
+    : p?`Tap the field to add route points for ${p.l}. Drag a dot to adjust it.`:'Tap a player, then tap the field to draw its route.';
+  const nO=play.players.filter(x=>x.s==='O').length, nD=play.players.length-nO;
+  const f=n=>n>11?`<b class="warn">${n}</b>`:`<b>${n}</b>`;
+  $('#count').innerHTML=`Offense ${f(nO)} · Defense ${f(nD)}${nO>11||nD>11?' <span class="warn">· too many men!</span>':''}`;
+
+  const sb=$('#selBox');
+  if(!p){sb.innerHTML='<p class="empty">Tap a player on the field to rename it, change its route ending, or remove it.</p>'}
+  else{
+    const off=p.s==='O', c=off?teams.o.color:teams.d.color;
+    const labels=off?OFF_LABELS:DEF_LABELS;
+    if(!sb.dataset.id||sb.dataset.id!==p.id||!document.getElementById('lblIn')||sb.dataset.v!==p.end+p.r.length){
+      sb.innerHTML=`<div class="card">
+        <div class="selhead"><span class="tok" style="background:${off?c:'#fff'};color:${off?txtOn(c):c};border:3px solid ${c}">${esc(p.l)}</span>
+          <div><div style="font-weight:600">${off?esc(teams.o.name)+' offense':esc(teams.d.name)+' defense'}</div><div style="font-size:13px;color:var(--muted)">${p.r.length} route point${p.r.length===1?'':'s'}</div></div></div>
+        <label class="f">Position letters<input type="text" id="lblIn" maxlength="3" value="${esc(p.l)}"></label>
+        <div class="chips">${labels.map(l=>`<button class="chip ${off?'o':'d'}" data-act="lbl" data-v="${l}">${l}</button>`).join('')}</div>
+        <div class="row"><span style="font-size:13px;color:var(--muted)">Route ends with</span>
+          <div class="seg" role="group" aria-label="Route ending"><button data-act="end" data-v="arrow" aria-pressed="${p.end==='arrow'}">Arrow →</button><button data-act="end" data-v="block" aria-pressed="${p.end==='block'}">Block ⊥</button></div></div>
+        <div class="row">
+          <button class="btn small" data-act="draw-this">✎ Draw route</button>
+          <button class="btn small" data-act="undo-pt" ${p.r.length?'':'disabled'}>Undo point</button>
+          <button class="btn small" data-act="clear-rt" ${p.r.length?'':'disabled'}>Clear route</button>
+          <button class="btn small danger" data-act="remove">Remove</button>
+        </div></div>`;
+      sb.dataset.id=p.id; sb.dataset.v=p.end+p.r.length;
+    }
+  }
+  if(!p){sb.dataset.id=''}
+
+  // ball select
+  const bs=$('#ballTo'), offs=play.players.filter(x=>x.s==='O'), cnt={};
+  const opts=['<option value="">Nobody (QB keeps it)</option>'].concat(offs.map(x=>{cnt[x.l]=(cnt[x.l]||0)+1;const dup=offs.filter(y=>y.l===x.l).length>1;
+    return `<option value="${x.id}">${esc(x.l)}${dup?' #'+cnt[x.l]:''}</option>`}));
+  bs.innerHTML=opts.join(''); bs.value=find(play.ball.to)?play.ball.to:'';
+
+  $('#addO').innerHTML=OFF_LABELS.map(l=>`<button class="chip o" data-act="add" data-s="O" data-v="${l}">+ ${l}</button>`).join('');
+  $('#addD').innerHTML=DEF_LABELS.map(l=>`<button class="chip d" data-act="add" data-s="D" data-v="${l}">+ ${l}</button>`).join('');
+
+  // teams
+  ['o','d'].forEach(k=>{const inp=$('#team'+k.toUpperCase()); if(document.activeElement!==inp) inp.value=teams[k].name;
+    $('#sw'+k.toUpperCase()).innerHTML=SWATCH.map(c=>`<button class="sw" style="background:${c}" aria-label="Color ${c}" aria-pressed="${teams[k].color===c}" data-act="color" data-s="${k}" data-v="${c}"></button>`).join('')});
+
+  // playbook
+  $('#savedList').innerHTML=saved.length?`<div class="list">${saved.map((s,i)=>`<div class="item"><span class="t">${esc(s.name)}<span class="sub">${s.players.length} players</span></span>
+      <button class="btn small" data-act="load-saved" data-v="${i}">Open</button>
+      <button class="btn small danger" data-act="del-saved" data-v="${i}">${pendingDel===i?'Sure?':'Delete'}</button></div>`).join('')}</div>`
+    :'<p class="empty">No saved plays yet. Draw one and tap Save.</p>';
+  $('#preList').innerHTML=PRE.map((s,i)=>`<div class="item"><span class="t">${esc(s.name)}<span class="sub">${esc(s.desc)}</span></span><button class="btn small" data-act="load-pre" data-v="${i}">Open</button></div>`).join('');
+}
+function renderAll(){renderField();renderPanel()}
+
+let toastT; function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1800)}
+function loadPlay(p,msg){resetAnim();pushHist();play=fresh(p);sel=null;changed();toast(msg)}
+const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+const dec=s=>JSON.parse(decodeURIComponent(escape(atob(s.trim()))));
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]'); if(!b)return;
+  const a=b.dataset.act, v=b.dataset.v, p=getSel();
+  if(a!=='clear-field')clearArm=false; if(a!=='del-saved')pendingDel=null;
+  switch(a){
+    case 'play': startPlay(); return;
+    case 'reset': resetAnim(); break;
+    case 'speed': speed=+v; break;
+    case 'mode': mode=v; resetAnim(); break;
+    case 'tab': tab=v; break;
+    case 'undo': if(hist.length){play=JSON.parse(hist.pop()); if(!getSel())sel=null; resetAnim(); store.set('spm.draft',play)} break;
+    case 'lbl': if(p){pushHist();p.l=v;changed();return} break;
+    case 'end': if(p){pushHist();p.end=v;changed();return} break;
+    case 'draw-this': mode='route'; resetAnim(); break;
+    case 'undo-pt': if(p&&p.r.length){pushHist();p.r.pop();changed();return} break;
+    case 'clear-rt': if(p){pushHist();p.r=[];changed();return} break;
+    case 'remove': if(p){pushHist();play.players=play.players.filter(x=>x.id!==p.id);if(play.ball.to===p.id)play.ball.to=null;sel=null;changed();return} break;
+    case 'add': {resetAnim();pushHist();const off=b.dataset.s==='O';const np=P(v,b.dataset.s,240+Math.round(Math.random()*54),off?470:330);
+      play.players.push(np);sel=np.id;mode='move';changed();toast(`Added ${v} — drag it into place`);return}
+    case 'rel': pushHist(); play.ball.rel=v; changed(); return;
+    case 'clear-routes': resetAnim();pushHist();play.players.forEach(x=>x.r=[]);changed();toast('Routes cleared');return;
+    case 'clear-field': if(!clearArm){clearArm=true;break} clearArm=false;resetAnim();pushHist();play.players=[];play.ball.to=null;sel=null;changed();return;
+    case 'color': teams[b.dataset.s].color=v; store.set('spm.teams',teams); renderStatic(); break;
+    case 'swap': {const t=teams.o;teams.o=teams.d;teams.d=t;store.set('spm.teams',teams);renderStatic();break}
+    case 'save': {const name=(play.name||'').trim()||'Untitled play'; play.name=name;
+      const copy=JSON.parse(JSON.stringify(play)), i=saved.findIndex(s=>s.name.toLowerCase()===name.toLowerCase());
+      if(i>=0){saved[i]=copy;toast(`Updated “${name}”`)}else{saved.unshift(copy);toast(`Saved “${name}”`)}
+      store.set('spm.saved',saved); break}
+    case 'load-saved': loadPlay(saved[+v],`Opened “${saved[+v].name}”`); return;
+    case 'del-saved': if(pendingDel!==+v){pendingDel=+v;break} saved.splice(+v,1);pendingDel=null;store.set('spm.saved',saved);toast('Deleted');break;
+    case 'load-pre': {const pr=fromPre(+v);loadPlay(pr,`Opened ${pr.name}`);return}
+    case 'gcat': gCat=v; renderGloss(); return;
+    case 'try': {const pr=fromPre(+v);tab='edit';loadPlay(pr,`Opened ${pr.name} — tap Run play`);window.scrollTo({top:0,behavior:'smooth'});return}
+    case 'copy-code': {const code=enc({name:play.name,players:play.players,ball:play.ball}), box=$('#codeBox');
+      const fallback=()=>{box.value=code;box.focus();box.select();toast('Code is in the box — copy it')};
+      try{navigator.clipboard.writeText(code).then(()=>toast('Play code copied'),fallback)}catch(_){fallback()} return}
+    case 'import-code': {try{const o=dec($('#codeBox').value);if(!Array.isArray(o.players))throw 0;
+        o.players.forEach(x=>{x.r=Array.isArray(x.r)?x.r:[];x.l=String(x.l||'?').slice(0,3);x.s=x.s==='D'?'D':'O';x.end=x.end==='block'?'block':'arrow'});
+        loadPlay({name:o.name||'Shared play',players:o.players,ball:o.ball||{to:null,rel:'normal'}},'Play loaded');$('#codeBox').value='';}
+      catch(_){toast('That code didn’t work — paste the whole thing')} return}
+  }
+  renderAll();
+});
+$('#playName').addEventListener('input',e=>{play.name=e.target.value;store.set('spm.draft',play);$('#saveName').textContent=play.name||'Untitled play'});
+$('#ballTo').addEventListener('change',e=>{pushHist();play.ball.to=e.target.value||null;changed()});
+document.addEventListener('input',e=>{
+  if(e.target.id==='lblIn'){const p=getSel();if(!p)return;p.l=e.target.value.toUpperCase().slice(0,3)||'?';store.set('spm.draft',play);renderField();
+    const tk=document.querySelector('#selBox .tok');if(tk)tk.textContent=p.l}
+  if(e.target.id==='teamO'||e.target.id==='teamD'){teams[e.target.id==='teamO'?'o':'d'].name=e.target.value;store.set('spm.teams',teams);renderStatic();renderPanel()}
+});
+
+/* ---------- Learn: glossary ---------- */
+const G=[
+ // Offense positions
+ ['Offense','Quarterback','QB','The leader of the offense. Takes the snap from the center, then hands the ball off, pitches it, throws it, or runs with it. He calls the play in the huddle.'],
+ ['Offense','Running back','RB · HB · TB','Lines up behind or beside the QB and mostly carries the ball on runs. Also catches short passes and helps block blitzers. "Halfback" (HB) and "tailback" (TB) mean the same thing.',1],
+ ['Offense','Fullback','FB','A bigger back who lines up in front of the running back in the I-formation. His main job is to lead the way and block for the runner.',1],
+ ['Offense','Wide receiver','WR','Fast players who line up near the sidelines and run routes to catch passes. On run plays they block the cornerbacks.'],
+ ['Offense','Tight end','TE','Lines up right next to a tackle on the line. Half blocker, half receiver: he can block like a lineman or run a route and catch.',5],
+ ['Offense','Offensive line','OL · C · G · T','The five big blockers: left tackle, left guard, center, right guard, right tackle. The center snaps the ball. They protect the QB on passes and push defenders out of the way on runs.'],
+ ['Offense','X receiver','X','The "split end." A wide receiver who lines up ON the line of scrimmage, usually on the side away from the tight end. Often the team\'s best outside receiver.'],
+ ['Offense','Y receiver','Y','Usually the tight end. In spread offenses with no tight end, Y is a slot receiver. Coaches use letters so they can say "Y runs a drag" without naming a player.'],
+ ['Offense','Z receiver','Z','The "flanker." A wide receiver who lines up a step BEHIND the line of scrimmage, usually on the tight end\'s side. Because he\'s off the line, he can go in motion.'],
+ ['Offense','H and F','H · F','Letters for the extra player in a formation. H is often a slot receiver or second tight end. F is often the fullback or a hybrid back.'],
+ ['Offense','Slot receiver','Slot','A receiver who lines up in the gap between the outside receiver and the offensive line. Slots run lots of quick inside routes.',4],
+ // Defense
+ ['Defense','Defensive end','DE','Lines up at the outside edge of the defensive line. Rushes the QB and stops runs from getting around the corner.'],
+ ['Defense','Defensive tackle','DT · NT','The big guys in the middle of the defensive line who battle the guards and center. A "nose tackle" (NT) lines up right over the center.'],
+ ['Defense','Linebacker','LB','The second level of the defense, a few yards behind the line. They tackle runners, cover short passes, and sometimes blitz.'],
+ ['Defense','Mike, Sam and Will','MLB · SLB · WLB','Names for the three linebackers. Mike is the middle linebacker and usually calls the defense. Sam lines up on the strong side (the tight end side). Will lines up on the weak side.'],
+ ['Defense','Cornerback','CB','Covers the wide receivers near the sidelines. Fast, good at backpedaling and breaking up passes.'],
+ ['Defense','Safety','S · FS · SS','The last line of defense, deep in the field. The free safety (FS) roams the middle and stops deep passes. The strong safety (SS) plays closer and helps against the run.'],
+ ['Defense','Nickel and dime','Nickel · Dime','When the offense brings out more receivers, the defense subs in extra defensive backs. A fifth one is a "nickel" back (5 cents). A sixth is a "dime" back.'],
+ // Formations
+ ['Formations','I-formation','I-form','The QB under center, the fullback behind him, and the running back behind the fullback, all in a straight line like the letter I. Great for running plays.',1],
+ ['Formations','Shotgun','Gun','The QB stands about 5 yards behind the center and catches a long snap. It gives him more time to see the field before he throws.',3],
+ ['Formations','Pistol','Pistol','A mix of the two: the QB is about 3–4 yards back, with the running back right behind him.'],
+ ['Formations','Spread','Spread','Receivers spread out wide across the field so the defense has to cover more space. Usually from shotgun.',4],
+ ['Formations','Trips','Trips','Three receivers lined up on the same side of the field.'],
+ ['Formations','Empty','Empty','No running back in the backfield. Everybody except the QB and linemen goes out for a pass.'],
+ ['Formations','4-3 defense','4-3','Four defensive linemen and three linebackers. The defense in our starter plays.',0],
+ ['Formations','3-4 defense','3-4','Three defensive linemen and four linebackers. It hides which linebacker will blitz.'],
+ // Play types
+ ['Plays','Run play','Run','The QB hands or pitches the ball to a runner. The linemen push forward to open a hole.',1],
+ ['Plays','Dive','Dive','A quick run straight up the middle. Short gain, but hard to stop.',1],
+ ['Plays','Sweep and toss','Sweep · Toss','The runner heads for the outside edge and races around the defense. On a toss, the QB pitches the ball to him instead of handing it off.',2],
+ ['Plays','Counter','Counter','Everybody steps one way to fool the defense, then the runner cuts back the other way behind pulling linemen.'],
+ ['Plays','Draw','Draw','Looks like a pass: the linemen back up and the QB drops back. Then he hands it to the runner while the pass rushers run past.'],
+ ['Plays','Pass play','Pass','The QB drops back while the line protects him, and receivers run routes to get open for a throw.',3],
+ ['Plays','Play action','PA','A fake handoff before a pass. The QB pretends to give the ball to the running back. If the linebackers step up to stop the "run," receivers get open behind them.',5],
+ ['Plays','Bootleg','Boot','Usually paired with play action: after the fake, the QB rolls out to the opposite side, away from the linemen, and throws on the run.',5],
+ ['Plays','Screen pass','Screen','The defense is allowed to rush in. The QB lofts a short pass to a running back behind a wall of linemen who released to block downfield.',6],
+ ['Plays','RPO','RPO','"Run-pass option." The QB reads one defender after the snap and decides to hand it off or throw a quick pass.'],
+ ['Plays','Option','Option','The QB runs toward the edge with a back trailing him and reads a defender: keep it, or pitch it to the back.'],
+ ['Plays','QB sneak','Sneak','The QB takes the snap and dives right behind the center. Used when the offense needs about a yard.'],
+ ['Plays','Hail Mary','Hail Mary','A long, high throw into the end zone at the end of a half, with everyone hoping someone catches it.'],
+ // Routes
+ ['Routes','Route','Route','The path a receiver runs. Coaches draw them as lines with an arrow at the end. A line ending in a T means "block here."'],
+ ['Routes','Route tree','Tree','The basic set of routes every receiver learns. Many teams number them so a play call can say "989" for three routes at once.'],
+ ['Routes','Flat','Flat','A short route straight toward the sideline, close to the line of scrimmage.',3],
+ ['Routes','Slant','Slant','Run 2–3 steps forward, then cut sharply on an angle toward the middle. Quick and hard to cover.',3],
+ ['Routes','Hitch and curl','Hitch · Curl','Run forward, stop, and turn back to face the QB. A hitch is short (about 5 yards). A curl goes deeper.'],
+ ['Routes','Out and in','Out · In · Dig','Run straight up the field, then cut 90 degrees: toward the sideline is an out, toward the middle is an in (also called a dig).'],
+ ['Routes','Post and corner','Post · Corner','Deep routes. A post angles toward the middle of the field (toward the goal post). A corner angles toward the back corner of the end zone.'],
+ ['Routes','Go route','Go · Fly · Vertical','Run straight down the field as fast as you can.',4],
+ ['Routes','Drag','Drag · Shallow','A route that runs across the field just a few yards past the line of scrimmage.',5],
+ ['Routes','Wheel','Wheel','The back runs toward the sideline like a flat route, then turns up the field and goes deep.'],
+ // Defense calls
+ ['Defense calls','Man coverage','Man','Each defender is assigned one receiver and follows him everywhere.'],
+ ['Defense calls','Zone coverage','Zone','Each defender guards an area of the field and covers whoever comes into it.'],
+ ['Defense calls','Cover 2','Cover 2','A zone where two safeties split the deep part of the field in half.'],
+ ['Defense calls','Cover 3','Cover 3','A zone where three defenders (usually two corners and a safety) split the deep field into thirds.'],
+ ['Defense calls','Blitz','Blitz','A linebacker or defensive back rushes the QB along with the linemen. Risky: fewer players are left to cover.'],
+ ['Defense calls','Sack','Sack','Tackling the QB behind the line of scrimmage before he can throw.'],
+ // Field & rules
+ ['Field & rules','Line of scrimmage','LOS','The imaginary line where the ball sits before the snap. Neither team can cross it until the ball is snapped. It\'s the blue line on our field.'],
+ ['Field & rules','First down','1st & 10','The offense gets 4 tries (downs) to gain 10 yards. Make it and you get a fresh set of downs. The yellow line on our field is 10 yards from the line of scrimmage.'],
+ ['Field & rules','Down and distance','3rd & 4','How coaches say the situation: "3rd and 4" means it\'s the third try and 4 yards are needed for a first down.'],
+ ['Field & rules','Snap','Snap · Hike','The center passing the ball back to the QB to start the play.'],
+ ['Field & rules','Pocket','Pocket','The protected space the offensive line forms around the QB on a pass play.'],
+ ['Field & rules','Hole numbers','Holes · Gaps','Spaces between linemen get numbers so a play call can say where the runner goes. Many teams use odd numbers to the left and even numbers to the right.'],
+ ['Field & rules','Motion','Motion','One player (often Z or a back) moves sideways before the snap. Only one player may move, and not toward the line.'],
+ ['Field & rules','Audible','Audible','The QB changes the play at the line after seeing how the defense lined up.'],
+ ['Field & rules','Eleven players','11','Each team can have only 11 players on the field. The offense must have at least 7 on the line of scrimmage. Our counter under the field warns you about 12 men.'],
+ ['Field & rules','False start and offside','Penalties','False start: an offensive player moves before the snap. Offside: a defender is across the line when the ball is snapped. Both cost 5 yards.'],
+ ['Field & rules','Holding','Holding','Grabbing and hanging on to an opponent instead of blocking him. 10 yards on the offense.'],
+ ['Field & rules','Pass interference','PI','Shoving or grabbing a player who is trying to catch a pass before the ball gets there.'],
+ ['Field & rules','Turnover','INT · Fumble','The defense takes the ball: an interception (catching a pass) or recovering a fumble (a dropped ball).'],
+ ['Field & rules','Red zone','Red zone','Inside the opponent\'s 20-yard line, close to scoring.'],
+ ['Field & rules','Scoring','TD · FG · Safety','Touchdown 6, then extra point 1 or two-point try 2. Field goal 3. A safety (tackling the ball carrier in his own end zone) is 2 for the defense.'],
+];
+let gCat='All';
+function renderGloss(){
+  const cats=['All',...new Set(G.map(g=>g[0]))], q=($('#glossQ').value||'').trim().toLowerCase();
+  $('#glossCats').innerHTML=cats.map(c=>`<button class="chip" data-act="gcat" data-v="${c}" aria-pressed="${c===gCat}">${c}</button>`).join('');
+  const hits=G.filter(g=>(gCat==='All'||g[0]===gCat)&&(!q||(g[1]+' '+g[2]+' '+g[3]).toLowerCase().includes(q)));
+  if(!hits.length){$('#glossList').innerHTML=`<p class="empty">No words match “${esc(q)}”. Try a shorter search.</p>`;return}
+  const groups={}; hits.forEach(g=>(groups[g[0]]=groups[g[0]]||[]).push(g));
+  $('#glossList').innerHTML=Object.entries(groups).map(([c,items])=>`<section><h4>${c}</h4><dl>${items.map(g=>`<div class="g"><dt>${esc(g[1])}<span class="ab">${esc(g[2])}</span></dt><dd>${esc(g[3])}</dd>${g[4]!=null?`<button class="btn small try" data-act="try" data-v="${g[4]}">▶ See it: ${esc(PRE[g[4]].name)}</button>`:''}</div>`).join('')}</dl></section>`).join('');
+}
+$('#glossQ').addEventListener('input',renderGloss);
+
+renderStatic(); renderAll();
+})();
+</script>
+
+</body>
+</html>
